@@ -7,7 +7,7 @@ const port = process.env.PORT;
 app.use(cors());
 app.use(express.json());
 
-const recipesRoutes = require("./routes/recipes.routes");
+const recipesRoutes = require("./src/routes/recipes.routes");
 app.use("/recipes", recipesRoutes);
 
 app.get("/", (req, res) => {
