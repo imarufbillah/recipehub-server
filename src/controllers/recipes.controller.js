@@ -88,4 +88,31 @@ const getRecipesByUserId = async (req, res) => {
   }
 };
 
-module.exports = { createRecipe, getRecipesByUserId };
+// Update a recipe
+const updateRecipe = async (req, res) => {
+  try {
+    const recipeId = req.params.recipeId;
+    const payload = req.body;
+    const updatedRecipe = {
+      ...payload,
+      updatedAt: new Date(),
+    };
+
+    cursor = { _id: new ObjectId(recipeId) };
+
+    const result = await recipesCollection.updateOne(cursor, {
+      $set: updatedRecipe,
+    });
+
+    if (result.modifiedCount > 0) {
+      res.json({ message: "Recipe updated successfully!" });
+    } else {
+      res.status(404).json({ message: "Recipe not found!" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error updating recipe!" });
+  }
+};
+
+module.exports = { createRecipe, getRecipesByUserId, updateRecipe };
