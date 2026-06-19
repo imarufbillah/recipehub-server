@@ -33,11 +33,7 @@ const createRecipe = async (req, res) => {
       !difficulty ||
       !prepTime ||
       !servings ||
-      !isPremium ||
-      !price ||
       !imageUrl ||
-      !ingredients ||
-      !steps ||
       !userId
     ) {
       return res.status(400).json({ message: "Missing required fields!" });
@@ -56,7 +52,7 @@ const createRecipe = async (req, res) => {
       imageUrl,
       ingredients,
       steps,
-      userId: new ObjectId(payload.userId),
+      userId: new ObjectId(userId),
       createdAt: new Date(),
     };
 
