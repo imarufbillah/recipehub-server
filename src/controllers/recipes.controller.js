@@ -95,6 +95,9 @@ const updateRecipe = async (req, res) => {
     const payload = req.body;
     const updatedRecipe = {
       ...payload,
+      prepTime: Number(payload.prepTime),
+      servings: Number(payload.servings),
+      price: Number(payload.price),
       updatedAt: new Date(),
     };
 
