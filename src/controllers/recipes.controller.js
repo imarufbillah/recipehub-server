@@ -45,15 +45,16 @@ const createRecipe = async (req, res) => {
       category,
       cuisine,
       difficulty,
-      prepTime,
-      servings,
+      prepTime: Number(prepTime),
+      servings: Number(servings),
       isPremium,
-      price,
+      price: Number(price),
       imageUrl,
       ingredients,
       steps,
       userId: new ObjectId(userId),
       createdAt: new Date(),
+      status: "active",
     };
 
     const result = await recipesCollection.insertOne(newRecipe);
