@@ -118,4 +118,28 @@ const updateRecipe = async (req, res) => {
   }
 };
 
-module.exports = { createRecipe, getRecipesByUserId, updateRecipe };
+// Delete a recipe
+const deleteRecipe = async (req, res) => {
+  try {
+    const recipeId = req.params.recipeId;
+    const cursor = { _id: new ObjectId(recipeId) };
+
+    const result = await recipesCollection.deleteOne(cursor);
+
+    if (result.deletedCount > 0) {
+      res.json({ message: "Recipe deleted successfully!" });
+    } else {
+      res.status(404).json({ message: "Recipe not found!" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error deleting recipe!" });
+  }
+};
+
+module.exports = {
+  createRecipe,
+  getRecipesByUserId,
+  updateRecipe,
+  deleteRecipe,
+};
