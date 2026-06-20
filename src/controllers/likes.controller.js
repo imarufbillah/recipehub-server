@@ -35,6 +35,31 @@ const likeRecipe = async (req, res) => {
   }
 };
 
+// Unlike a recipe
+const unlikeRecipe = async (req, res) => {
+  try {
+    const { userId, recipeId } = req.body;
+    const result = await likesCollection.deleteOne({
+      recipeId: new ObjectId(recipeId),
+      userId: new ObjectId(userId),
+    });
+
+    if (result.deletedCount > 0) {
+      const decrementResult = await recipesCollection.updateOne(
+        { _id: new ObjectId(recipeId) },
+        { $inc: { likeCount: -1 } },
+      );
+      res.json({ message: "Recipe unliked successfully!" });
+    } else {
+      res.status(404).json({ message: "Recipe not found!" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error unliking recipe!" });
+  }
+};
+
 module.exports = {
   likeRecipe,
+  unlikeRecipe,
 };
