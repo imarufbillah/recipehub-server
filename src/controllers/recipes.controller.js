@@ -55,6 +55,7 @@ const createRecipe = async (req, res) => {
       userId: new ObjectId(userId),
       createdAt: new Date(),
       status: "active",
+      isFeatured: false,
     };
 
     const result = await recipesCollection.insertOne(newRecipe);
