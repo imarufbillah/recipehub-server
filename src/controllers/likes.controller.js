@@ -59,7 +59,23 @@ const unlikeRecipe = async (req, res) => {
   }
 };
 
+// Get and check like status, returns true or false
+const getLikeStatus = async (req, res) => {
+  try {
+    const { userId, recipeId } = req.body;
+    const result = await likesCollection.findOne({
+      recipeId: new ObjectId(recipeId),
+      userId: new ObjectId(userId),
+    });
+    res.json(result !== null);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error checking like status!" });
+  }
+};
+
 module.exports = {
   likeRecipe,
   unlikeRecipe,
+  getLikeStatus,
 };
