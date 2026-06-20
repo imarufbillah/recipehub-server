@@ -7,8 +7,13 @@ const port = process.env.PORT;
 app.use(cors());
 app.use(express.json());
 
+// Routes imports
 const recipesRoutes = require("./src/routes/recipes.routes");
+const likesRoutes = require("./src/routes/likes.routes");
+
+// Routes
 app.use("/recipes", recipesRoutes);
+app.use("/likes", likesRoutes);
 
 app.get("/", (req, res) => {
   res.send("Server is cooking!");
