@@ -12,11 +12,11 @@ const {
 } = require("../controllers/recipes.controller");
 
 router.post("/", createRecipe);
+router.get("/", getAllRecipes);
 router.get("/categories", getAllRecipeCategories);
-router.get("/:userId", getRecipesByUserId);
+router.get("/user/:userId", getRecipesByUserId);
+router.get("/:recipeId", getRecipeById);
 router.patch("/:recipeId", updateRecipe);
 router.delete("/:recipeId", deleteRecipe);
-router.get("/", getAllRecipes);
-router.get("/:recipeId", getRecipeById);
 
 module.exports = router;
