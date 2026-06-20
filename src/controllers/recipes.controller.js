@@ -148,10 +148,36 @@ const getAllRecipes = async (req, res) => {
   }
 };
 
+// Get all recipe categories
+const getAllRecipeCategories = async (req, res) => {
+  try {
+    const result = await recipesCollection
+      .aggregate([
+        {
+          $group: {
+            _id: "$category",
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            category: "$_id",
+          },
+        },
+      ])
+      .toArray();
+    res.json(result.map((item) => item.category));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching recipe categories!" });
+  }
+};
+
 module.exports = {
   createRecipe,
   getRecipesByUserId,
   updateRecipe,
   deleteRecipe,
   getAllRecipes,
+  getAllRecipeCategories,
 };
