@@ -174,6 +174,20 @@ const getAllRecipeCategories = async (req, res) => {
   }
 };
 
+// Get recipe by ID
+const getRecipeById = async (req, res) => {
+  try {
+    const recipeId = req.params.recipeId;
+    const cursor = { _id: new ObjectId(recipeId) };
+
+    const result = await recipesCollection.findOne(cursor);
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching recipe!" });
+  }
+};
+
 module.exports = {
   createRecipe,
   getRecipesByUserId,
@@ -181,4 +195,5 @@ module.exports = {
   deleteRecipe,
   getAllRecipes,
   getAllRecipeCategories,
+  getRecipeById,
 };
