@@ -23,6 +23,23 @@ const addToFavorites = async (req, res) => {
   }
 };
 
+// Remove favorite
+const removeFromFavorites = async (req, res) => {
+  try {
+    const { userId, recipeId } = req.body;
+    await favoritesCollection.deleteOne({
+      userId: new ObjectId(userId),
+      recipeId: new ObjectId(recipeId),
+    });
+
+    res.json({ message: "Recipe removed from favorites!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error removing from favorites!" });
+  }
+};
+
 module.exports = {
   addToFavorites,
+  removeFromFavorites,
 };
