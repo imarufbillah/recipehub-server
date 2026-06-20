@@ -137,9 +137,21 @@ const deleteRecipe = async (req, res) => {
   }
 };
 
+// Get all recipes
+const getAllRecipes = async (req, res) => {
+  try {
+    const result = await recipesCollection.find().toArray();
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching recipes!" });
+  }
+};
+
 module.exports = {
   createRecipe,
   getRecipesByUserId,
   updateRecipe,
   deleteRecipe,
+  getAllRecipes,
 };
