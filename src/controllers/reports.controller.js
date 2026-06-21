@@ -8,11 +8,12 @@ const reportsCollection = database.collection("reports");
 // Create a report
 const createReport = async (req, res) => {
   try {
-    const { userId, recipeId, reason } = req.body;
+    const { userId, recipeId, reason, additionalContext = "" } = req.body;
     const newReport = {
       userId: new ObjectId(userId),
       recipeId: new ObjectId(recipeId),
       reason,
+      additionalContext,
       status: "pending",
       createdAt: new Date(),
     };
