@@ -5,6 +5,7 @@ const { ObjectId } = require("mongodb");
 
 const recipesCollection = database.collection("recipes");
 const usersCollection = database.collection("user");
+const purchasesCollection = database.collection("purchases");
 
 // Create a new recipe
 const createRecipe = async (req, res) => {
@@ -177,11 +178,42 @@ const getAllRecipeCategories = async (req, res) => {
 // Get recipe by ID
 const getRecipeById = async (req, res) => {
   try {
+    const userId = "6a33cdbbc8e7e9cc557dcb6f";
     const recipeId = req.params.recipeId;
     const cursor = { _id: new ObjectId(recipeId) };
 
-    const result = await recipesCollection.findOne(cursor);
-    res.json(result);
+    // Check if the recipe has already been purchased
+    const isPurchased = await purchasesCollection.findOne({
+      userId: new ObjectId(userId),
+      recipeId: new ObjectId(recipeId),
+    });
+
+    // Check if the recipe is premium
+    const queryIsPremium = await recipesCollection.findOne(
+      {
+        _id: new ObjectId(recipeId),
+      },
+      {
+        projection: {
+          isPremium: 1,
+          _id: 0,
+        },
+      },
+    );
+    const isPremium = queryIsPremium.isPremium;
+
+    if (!isPurchased && isPremium) {
+      const result = await recipesCollection.findOne(cursor, {
+        projection: {
+          ingredients: 0,
+          steps: 0,
+        },
+      });
+      return res.json(result);
+    } else {
+      const result = await recipesCollection.findOne(cursor);
+      return res.json(result);
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching recipe!" });
