@@ -25,6 +25,23 @@ const createReport = async (req, res) => {
   }
 };
 
+// Get report status
+const getReportStatus = async (req, res) => {
+  try {
+    const { userId, recipeId } = req.query;
+    const result = await reportsCollection.findOne({
+      userId: new ObjectId(userId),
+      recipeId: new ObjectId(recipeId),
+    });
+
+    res.json(result !== null);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error checking report status!" });
+  }
+};
+
 module.exports = {
   createReport,
+  getReportStatus,
 };
