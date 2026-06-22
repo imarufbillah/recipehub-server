@@ -24,6 +24,7 @@ const createRecipe = async (req, res) => {
       ingredients,
       steps,
       userId,
+      author,
     } = req.body;
 
     if (
@@ -35,7 +36,8 @@ const createRecipe = async (req, res) => {
       !prepTime ||
       !servings ||
       !imageUrl ||
-      !userId
+      !userId ||
+      !author
     ) {
       return res.status(400).json({ message: "Missing required fields!" });
     }
@@ -54,9 +56,12 @@ const createRecipe = async (req, res) => {
       ingredients,
       steps,
       userId: new ObjectId(userId),
+      author: author || "Unknown",
       createdAt: new Date(),
       status: "active",
       isFeatured: false,
+      likeCount: 0,
+      favoriteCount: 0,
     };
 
     const result = await recipesCollection.insertOne(newRecipe);
