@@ -85,6 +85,15 @@ const getPurchasesByUserId = async (req, res) => {
             localField: "recipeId",
             foreignField: "_id",
             as: "recipe",
+            pipeline: [
+              {
+                $project: {
+                  recipeName: 1,
+                  author: 1,
+                  price: 1,
+                },
+              },
+            ],
           },
         },
         {
@@ -99,6 +108,9 @@ const getPurchasesByUserId = async (req, res) => {
             price: "$recipe.price",
             stripePaymentIntentId: 1,
           },
+        },
+        {
+          $sort: { purchasedAt: -1 },
         },
       ])
       .toArray();
