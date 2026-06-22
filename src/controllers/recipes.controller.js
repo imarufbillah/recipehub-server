@@ -346,42 +346,37 @@ const getAllRecipeCuisines = async (req, res) => {
 // Get recipe by ID
 const getRecipeById = async (req, res) => {
   try {
-    const userId = "6a33cdbbc8e7e9cc557dcb6f";
-    const recipeId = req.params.recipeId;
-    const cursor = { _id: new ObjectId(recipeId) };
+    const { recipeId } = req.params;
+    // TODO: Add auth middleware to get user ID
+    const userId = "6a33cdbbc8e7e9cc557dcb6f"; // or req.user?.id if using auth middleware
 
-    // Check if the recipe has already been purchased
-    const isPurchased = await purchasesCollection.findOne({
-      userId: new ObjectId(userId),
-      recipeId: new ObjectId(recipeId),
-    });
+    const recipeObjectId = new ObjectId(recipeId);
 
-    // Check if the recipe is premium
-    const queryIsPremium = await recipesCollection.findOne(
-      {
-        _id: new ObjectId(recipeId),
-      },
-      {
-        projection: {
-          isPremium: 1,
-          _id: 0,
-        },
-      },
-    );
-    const isPremium = queryIsPremium.isPremium;
+    const [recipe, isPurchased] = await Promise.all([
+      recipesCollection.findOne({ _id: recipeObjectId }),
+      userId
+        ? purchasesCollection.findOne(
+            {
+              userId: new ObjectId(userId),
+              recipeId: recipeObjectId,
+            },
+            { projection: { _id: 1 } },
+          )
+        : Promise.resolve(null),
+    ]);
 
-    if (!isPurchased && isPremium) {
-      const result = await recipesCollection.findOne(cursor, {
-        projection: {
-          ingredients: 0,
-          steps: 0,
-        },
-      });
-      return res.json(result);
-    } else {
-      const result = await recipesCollection.findOne(cursor);
-      return res.json(result);
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found!" });
     }
+
+    const isOwner = userId && recipe.userId.equals(new ObjectId(userId));
+
+    if (recipe.isPremium && !isPurchased && !isOwner) {
+      const { ingredients, steps, ...publicRecipe } = recipe;
+      return res.json(publicRecipe);
+    }
+
+    res.json(recipe);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching recipe!" });
