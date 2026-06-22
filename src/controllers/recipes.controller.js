@@ -122,6 +122,7 @@ const updateRecipe = async (req, res) => {
   try {
     const recipeId = req.params.recipeId;
     const payload = req.body;
+
     const updatedRecipe = {
       ...payload,
       prepTime: Number(payload.prepTime),
@@ -130,17 +131,16 @@ const updateRecipe = async (req, res) => {
       updatedAt: new Date(),
     };
 
-    cursor = { _id: new ObjectId(recipeId) };
+    const result = await recipesCollection.updateOne(
+      { _id: new ObjectId(recipeId) },
+      { $set: updatedRecipe },
+    );
 
-    const result = await recipesCollection.updateOne(cursor, {
-      $set: updatedRecipe,
-    });
-
-    if (result.modifiedCount > 0) {
-      res.json({ message: "Recipe updated successfully!" });
-    } else {
-      res.status(404).json({ message: "Recipe not found!" });
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "Recipe not found!" });
     }
+
+    res.json({ message: "Recipe updated successfully!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error updating recipe!" });
