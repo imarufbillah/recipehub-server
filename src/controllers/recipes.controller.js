@@ -64,6 +64,12 @@ const createRecipe = async (req, res) => {
       favoriteCount: 0,
     };
 
+    // Check if the user plan is free and published recipes are less than 2
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    if (user.plan === "free" && user.recipes >= 2) {
+      return res.status(400).json({ message: "Free plan limit reached!" });
+    }
+
     const result = await recipesCollection.insertOne(newRecipe);
 
     await usersCollection.updateOne(
