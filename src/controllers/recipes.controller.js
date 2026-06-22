@@ -104,9 +104,12 @@ const createRecipe = async (req, res) => {
 const getRecipesByUserId = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const cursor = { userId: new ObjectId(userId) };
 
-    const result = await recipesCollection.find(cursor).toArray();
+    const result = await recipesCollection
+      .find({ userId: new ObjectId(userId) })
+      .sort({ createdAt: -1 })
+      .toArray();
+
     res.json(result);
   } catch (error) {
     console.error(error);
