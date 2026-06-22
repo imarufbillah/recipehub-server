@@ -54,7 +54,51 @@ const getPurchaseStatus = async (req, res) => {
   }
 };
 
+// Get purchases by user ID (includes recipeName, author, price, ...)
+const getPurchasesByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const result = await purchasesCollection
+      .aggregate([
+        {
+          $match: {
+            userId: new ObjectId(userId),
+          },
+        },
+        {
+          $lookup: {
+            from: "recipes",
+            localField: "recipeId",
+            foreignField: "_id",
+            as: "recipe",
+          },
+        },
+        {
+          $unwind: "$recipe",
+        },
+        {
+          $project: {
+            purchasedAt: 1,
+            recipeName: "$recipe.recipeName",
+            recipeId: "$recipe._id",
+            author: "$recipe.author",
+            price: "$recipe.price",
+            stripePaymentIntentId: 1,
+          },
+        },
+      ])
+      .toArray();
+
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching purchases!" });
+  }
+};
+
 module.exports = {
   makePurchase,
   getPurchaseStatus,
+  getPurchasesByUserId,
 };
