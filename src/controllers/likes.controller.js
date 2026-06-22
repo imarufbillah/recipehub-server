@@ -20,9 +20,16 @@ const likeRecipe = async (req, res) => {
     const result = await likesCollection.insertOne(newLike);
 
     if (result.acknowledged) {
-      const incrementResult = await recipesCollection.updateOne(
+      // Increment likeCount for the recipe
+      await recipesCollection.updateOne(
         { _id: new ObjectId(recipeId) },
         { $inc: { likeCount: 1 } },
+      );
+
+      // Increment totalLikes for the user
+      await usersCollection.updateOne(
+        { _id: new ObjectId(userId) },
+        { $inc: { totalLikes: 1 } },
       );
 
       res.json({ message: "Recipe liked successfully!" });
@@ -45,10 +52,18 @@ const unlikeRecipe = async (req, res) => {
     });
 
     if (result.deletedCount > 0) {
-      const decrementResult = await recipesCollection.updateOne(
+      // Decrement likeCount for the recipe
+      await recipesCollection.updateOne(
         { _id: new ObjectId(recipeId) },
         { $inc: { likeCount: -1 } },
       );
+
+      // Decrement totalLikes for the user
+      await usersCollection.updateOne(
+        { _id: new ObjectId(userId) },
+        { $inc: { totalLikes: -1 } },
+      );
+
       res.json({ message: "Recipe unliked successfully!" });
     } else {
       res.status(404).json({ message: "Recipe not found!" });
