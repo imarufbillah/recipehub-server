@@ -189,23 +189,20 @@ const getAllRecipes = async (req, res) => {
 
     // Full-text search (recipeName + description)
     if (q?.trim()) {
-      filter.$or = [
-        { recipeName: { $regex: q.trim(), $options: "i" } },
-        { description: { $regex: q.trim(), $options: "i" } },
-      ];
+      const searchRegex = new RegExp(q.trim(), "i");
+      filter.$or = [{ recipeName: searchRegex }, { description: searchRegex }];
     }
 
     // Categorical filters
-    if (category) filter.category = { $regex: `^${category}$`, $options: "i" };
-    if (cuisine) filter.cuisine = { $regex: `^${cuisine}$`, $options: "i" };
-    if (difficulty)
-      filter.difficulty = { $regex: `^${difficulty}$`, $options: "i" };
+    if (category) filter.category = new RegExp(`^${category}$`, "i");
+    if (cuisine) filter.cuisine = new RegExp(`^${cuisine}$`, "i");
+    if (difficulty) filter.difficulty = new RegExp(`^${difficulty}$`, "i");
 
     // Boolean filters
     if (isPremium !== undefined) filter.isPremium = isPremium === "true";
     if (isFeatured !== undefined) filter.isFeatured = isFeatured === "true";
 
-    // Price range (only meaningful for premium recipes)
+    // Price range
     if (minPrice || maxPrice) {
       filter.price = {};
       if (minPrice) filter.price.$gte = parseFloat(minPrice);
@@ -223,17 +220,35 @@ const getAllRecipes = async (req, res) => {
       price_asc: { price: 1 },
       price_desc: { price: -1 },
     };
-    const sortOption = sortMap[sort] ?? { _id: -1 }; // default: newest
+    const sortOption = sortMap[sort] ?? { _id: -1 };
 
     // Pagination
     const pageNum = Math.max(1, parseInt(page ?? "1", 10));
     const pageSize = Math.min(50, Math.max(1, parseInt(limit ?? "12", 10)));
     const skip = (pageNum - 1) * pageSize;
 
-    // Query
-    const [result, total] = await Promise.all([
+    const projection = {
+      recipeName: 1,
+      description: 1,
+      category: 1,
+      cuisine: 1,
+      difficulty: 1,
+      prepTime: 1,
+      servings: 1,
+      imageUrl: 1,
+      isPremium: 1,
+      isFeatured: 1,
+      price: 1,
+      author: 1,
+      likeCount: 1,
+      favoriteCount: 1,
+      status: 1,
+      createdAt: 1,
+    };
+
+    const [recipes, total] = await Promise.all([
       recipesCollection
-        .find(filter)
+        .find(filter, { projection })
         .sort(sortOption)
         .skip(skip)
         .limit(pageSize)
@@ -242,7 +257,7 @@ const getAllRecipes = async (req, res) => {
     ]);
 
     res.json({
-      recipes: result,
+      recipes,
       total,
       page: pageNum,
       totalPages: Math.ceil(total / pageSize),
