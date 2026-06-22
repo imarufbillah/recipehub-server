@@ -262,6 +262,38 @@ const getAllRecipeCategories = async (req, res) => {
   }
 };
 
+// Get all recipe cuisines with id and label: {id: "asian", label: "Asian"}
+const getAllRecipeCuisines = async (req, res) => {
+  try {
+    const result = await recipesCollection
+      .aggregate([
+        {
+          $group: {
+            _id: "$cuisine",
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            id: { $toLower: "$_id" },
+            label: "$_id",
+          },
+        },
+        {
+          $sort: {
+            label: 1,
+          },
+        },
+      ])
+      .toArray();
+
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching recipe cuisines!" });
+  }
+};
+
 // Get recipe by ID
 const getRecipeById = async (req, res) => {
   try {
@@ -314,5 +346,6 @@ module.exports = {
   deleteRecipe,
   getAllRecipes,
   getAllRecipeCategories,
+  getAllRecipeCuisines,
   getRecipeById,
 };
