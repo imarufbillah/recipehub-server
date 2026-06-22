@@ -105,10 +105,15 @@ const unlikeRecipe = async (req, res) => {
 const getLikeStatus = async (req, res) => {
   try {
     const { userId, recipeId } = req.query;
-    const result = await likesCollection.findOne({
-      recipeId: new ObjectId(recipeId),
-      userId: new ObjectId(userId),
-    });
+
+    const result = await likesCollection.findOne(
+      {
+        recipeId: new ObjectId(recipeId),
+        userId: new ObjectId(userId),
+      },
+      { projection: { _id: 1 } },
+    );
+
     res.json(result !== null);
   } catch (error) {
     console.error(error);
