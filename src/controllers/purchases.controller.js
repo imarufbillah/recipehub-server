@@ -8,29 +8,38 @@ const purchasesCollection = database.collection("purchases");
 // Make a purchase
 const makePurchase = async (req, res) => {
   try {
-    const payload = req.body;
-    const newPurchase = {
-      ...payload,
-      userId: new ObjectId(payload.userId),
-      recipeId: new ObjectId(payload.recipeId),
-      amount: Number(payload.amount),
-      currency: payload.currency.toLowerCase(),
-      status: "completed",
-      purchasedAt: new Date(payload.purchasedAt),
-      createdAt: new Date(),
-    };
+    const { userId, recipeId, amount, currency, purchasedAt, ...rest } =
+      req.body;
 
-    // Check if the recipe has already been purchased
-    const existingPurchase = await purchasesCollection.findOne({
-      userId: new ObjectId(payload.userId),
-      recipeId: new ObjectId(payload.recipeId),
-    });
+    const userObjectId = new ObjectId(userId);
+    const recipeObjectId = new ObjectId(recipeId);
+
+    const existingPurchase = await purchasesCollection.findOne(
+      { userId: userObjectId, recipeId: recipeObjectId },
+      { projection: { _id: 1 } },
+    );
 
     if (existingPurchase) {
       return res.status(400).json({ message: "Recipe already purchased!" });
     }
 
+    const newPurchase = {
+      ...rest,
+      userId: userObjectId,
+      recipeId: recipeObjectId,
+      amount: Number(amount),
+      currency: currency.toLowerCase(),
+      status: "completed",
+      purchasedAt: new Date(purchasedAt),
+      createdAt: new Date(),
+    };
+
     const result = await purchasesCollection.insertOne(newPurchase);
+
+    if (!result.acknowledged) {
+      return res.status(500).json({ message: "Error purchasing recipe!" });
+    }
+
     res.json({ message: "Recipe purchase success!" });
   } catch (error) {
     console.error(error);
