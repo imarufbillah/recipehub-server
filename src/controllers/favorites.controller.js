@@ -105,10 +105,14 @@ const removeFromFavorites = async (req, res) => {
 const getFavoriteStatus = async (req, res) => {
   try {
     const { userId, recipeId } = req.query;
-    const result = await favoritesCollection.findOne({
-      userId: new ObjectId(userId),
-      recipeId: new ObjectId(recipeId),
-    });
+
+    const result = await favoritesCollection.findOne(
+      {
+        userId: new ObjectId(userId),
+        recipeId: new ObjectId(recipeId),
+      },
+      { projection: { _id: 1 } },
+    );
 
     res.json(result !== null);
   } catch (error) {
