@@ -139,6 +139,16 @@ const getFavoritesByUserId = async (req, res) => {
             localField: "recipeId",
             foreignField: "_id",
             as: "recipe",
+            pipeline: [
+              {
+                $project: {
+                  recipeName: 1,
+                  category: 1,
+                  isPremium: 1,
+                  author: 1,
+                },
+              },
+            ],
           },
         },
         {
@@ -154,6 +164,9 @@ const getFavoritesByUserId = async (req, res) => {
             isPremium: "$recipe.isPremium",
             author: "$recipe.author",
           },
+        },
+        {
+          $sort: { addedAt: -1 },
         },
       ])
       .toArray();
