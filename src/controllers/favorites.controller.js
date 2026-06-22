@@ -112,6 +112,7 @@ const getFavoritesByUserId = async (req, res) => {
           $project: {
             _id: 0,
             addedAt: 1,
+            recipeId: "$recipe._id",
             recipeName: "$recipe.recipeName",
             category: "$recipe.category",
             isPremium: "$recipe.isPremium",
