@@ -4,6 +4,8 @@ const { database } = require("../config/db");
 const { ObjectId } = require("mongodb");
 
 const favoritesCollection = database.collection("favorites");
+const recipesCollection = database.collection("recipes");
+const usersCollection = database.collection("user");
 
 // Add to favorites
 const addToFavorites = async (req, res) => {
@@ -15,7 +17,21 @@ const addToFavorites = async (req, res) => {
       addedAt: new Date(),
     };
 
-    await favoritesCollection.insertOne(newFavorite);
+    const result = await favoritesCollection.insertOne(newFavorite);
+    if (result.acknowledged) {
+      // Increment favoriteCount for the recipe
+      await recipesCollection.updateOne(
+        { _id: new ObjectId(recipeId) },
+        { $inc: { favoriteCount: 1 } },
+      );
+
+      // Increment totalFavorites for the user
+      await usersCollection.updateOne(
+        { _id: new ObjectId(userId) },
+        { $inc: { totalFavorites: 1 } },
+      );
+    }
+
     res.json({ message: "Recipe added to favorites!" });
   } catch (error) {
     console.error(error);
@@ -27,10 +43,24 @@ const addToFavorites = async (req, res) => {
 const removeFromFavorites = async (req, res) => {
   try {
     const { userId, recipeId } = req.body;
-    await favoritesCollection.deleteOne({
+    const result = await favoritesCollection.deleteOne({
       userId: new ObjectId(userId),
       recipeId: new ObjectId(recipeId),
     });
+
+    if (result.deletedCount > 0) {
+      // Decrement favoriteCount for the recipe
+      await recipesCollection.updateOne(
+        { _id: new ObjectId(recipeId) },
+        { $inc: { favoriteCount: -1 } },
+      );
+
+      // Decrement totalFavorites for the user
+      await usersCollection.updateOne(
+        { _id: new ObjectId(userId) },
+        { $inc: { totalFavorites: -1 } },
+      );
+    }
 
     res.json({ message: "Recipe removed from favorites!" });
   } catch (error) {
