@@ -307,15 +307,21 @@ const getAllRecipeCategories = async (req, res) => {
 };
 
 // Get all recipe cuisines with id and label: {id: "asian", label: "Asian"}
+let cuisinesCache = null;
+let cuisinesCachedAt = null;
+const CUISINES_TTL = 5 * 60 * 1000; // 5 minutes
+
 const getAllRecipeCuisines = async (req, res) => {
   try {
+    const now = Date.now();
+
+    if (cuisinesCache && now - cuisinesCachedAt < CUISINES_TTL) {
+      return res.json(cuisinesCache);
+    }
+
     const result = await recipesCollection
       .aggregate([
-        {
-          $group: {
-            _id: "$cuisine",
-          },
-        },
+        { $group: { _id: "$cuisine" } },
         {
           $project: {
             _id: 0,
@@ -323,13 +329,12 @@ const getAllRecipeCuisines = async (req, res) => {
             label: "$_id",
           },
         },
-        {
-          $sort: {
-            label: 1,
-          },
-        },
+        { $sort: { label: 1 } },
       ])
       .toArray();
+
+    cuisinesCache = result;
+    cuisinesCachedAt = now;
 
     res.json(result);
   } catch (error) {
