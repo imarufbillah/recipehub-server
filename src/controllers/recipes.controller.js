@@ -250,12 +250,19 @@ const getAllRecipeCategories = async (req, res) => {
         {
           $project: {
             _id: 0,
-            category: "$_id",
+            id: { $toLower: "$_id" },
+            label: "$_id",
+          },
+        },
+        {
+          $sort: {
+            label: 1,
           },
         },
       ])
       .toArray();
-    res.json(result.map((item) => item.category));
+
+    res.json(result);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching recipe categories!" });
