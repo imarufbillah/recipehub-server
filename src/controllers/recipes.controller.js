@@ -42,6 +42,21 @@ const createRecipe = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields!" });
     }
 
+    const userObjectId = new ObjectId(userId);
+
+    const user = await usersCollection.findOne(
+      { _id: userObjectId },
+      { projection: { plan: 1, recipes: 1 } },
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    if (user.plan === "free" && user.recipes >= 2) {
+      return res.status(400).json({ message: "Free plan limit reached!" });
+    }
+
     const newRecipe = {
       recipeName,
       description,
@@ -55,8 +70,8 @@ const createRecipe = async (req, res) => {
       imageUrl,
       ingredients,
       steps,
-      userId: new ObjectId(userId),
-      author: author || "Unknown",
+      userId: userObjectId,
+      author,
       createdAt: new Date(),
       status: "active",
       isFeatured: false,
@@ -64,16 +79,14 @@ const createRecipe = async (req, res) => {
       favoriteCount: 0,
     };
 
-    // Check if the user plan is free and published recipes are less than 2
-    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
-    if (user.plan === "free" && user.recipes >= 2) {
-      return res.status(400).json({ message: "Free plan limit reached!" });
-    }
-
     const result = await recipesCollection.insertOne(newRecipe);
 
+    if (!result.acknowledged) {
+      return res.status(500).json({ message: "Error creating recipe!" });
+    }
+
     await usersCollection.updateOne(
-      { _id: new ObjectId(userId) },
+      { _id: userObjectId },
       { $inc: { recipes: 1 } },
     );
 
