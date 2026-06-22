@@ -11,31 +11,45 @@ const recipesCollection = database.collection("recipes");
 const likeRecipe = async (req, res) => {
   try {
     const { userId, recipeId } = req.body;
+
+    const recipe = await recipesCollection.findOne(
+      { _id: new ObjectId(recipeId) },
+      {
+        projection: {
+          userId: 1,
+        },
+      },
+    );
+
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found!" });
+    }
+
     const newLike = {
       recipeId: new ObjectId(recipeId),
       userId: new ObjectId(userId),
+      recipePublisher: new ObjectId(recipe.userId),
       createdAt: new Date(),
     };
 
     const result = await likesCollection.insertOne(newLike);
 
-    if (result.acknowledged) {
-      // Increment likeCount for the recipe
-      await recipesCollection.updateOne(
+    if (!result.acknowledged) {
+      return res.status(500).json({ message: "Error liking recipe!" });
+    }
+
+    await Promise.all([
+      recipesCollection.updateOne(
         { _id: new ObjectId(recipeId) },
         { $inc: { likeCount: 1 } },
-      );
-
-      // Increment totalLikes for the user
-      await usersCollection.updateOne(
-        { _id: new ObjectId(userId) },
+      ),
+      usersCollection.updateOne(
+        { _id: new ObjectId(recipe.userId) },
         { $inc: { totalLikes: 1 } },
-      );
+      ),
+    ]);
 
-      res.json({ message: "Recipe liked successfully!" });
-    } else {
-      res.status(404).json({ message: "Recipe not found!" });
-    }
+    res.json({ message: "Recipe liked successfully!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error liking recipe!" });
