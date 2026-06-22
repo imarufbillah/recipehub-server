@@ -13,6 +13,7 @@ const likesRoutes = require("./src/routes/likes.routes");
 const favoritesRoutes = require("./src/routes/favorites.routes");
 const reportsRoutes = require("./src/routes/reports.routes");
 const purchasesRoutes = require("./src/routes/purchases.routes");
+const usersRoutes = require("./src/routes/users.routes");
 
 // Routes
 app.use("/recipes", recipesRoutes);
@@ -20,6 +21,7 @@ app.use("/likes", likesRoutes);
 app.use("/favorites", favoritesRoutes);
 app.use("/reports", reportsRoutes);
 app.use("/purchases", purchasesRoutes);
+app.use("/users", usersRoutes);
 
 app.get("/", (req, res) => {
   res.send("Server is cooking!");
