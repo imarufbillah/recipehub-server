@@ -60,24 +60,39 @@ const addToFavorites = async (req, res) => {
 const removeFromFavorites = async (req, res) => {
   try {
     const { userId, recipeId } = req.body;
+
+    const recipe = await recipesCollection.findOne(
+      { _id: new ObjectId(recipeId) },
+      {
+        projection: {
+          userId: 1,
+        },
+      },
+    );
+
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found!" });
+    }
+
     const result = await favoritesCollection.deleteOne({
       userId: new ObjectId(userId),
       recipeId: new ObjectId(recipeId),
     });
 
-    if (result.deletedCount > 0) {
-      // Decrement favoriteCount for the recipe
-      await recipesCollection.updateOne(
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Favorite not found!" });
+    }
+
+    await Promise.all([
+      recipesCollection.updateOne(
         { _id: new ObjectId(recipeId) },
         { $inc: { favoriteCount: -1 } },
-      );
-
-      // Decrement totalFavorites for the user
-      await usersCollection.updateOne(
-        { _id: new ObjectId(userId) },
+      ),
+      usersCollection.updateOne(
+        { _id: new ObjectId(recipe.userId) },
         { $inc: { totalFavorites: -1 } },
-      );
-    }
+      ),
+    ]);
 
     res.json({ message: "Recipe removed from favorites!" });
   } catch (error) {
