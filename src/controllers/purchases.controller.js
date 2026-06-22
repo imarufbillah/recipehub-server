@@ -51,10 +51,14 @@ const makePurchase = async (req, res) => {
 const getPurchaseStatus = async (req, res) => {
   try {
     const { userId, recipeId } = req.query;
-    const result = await purchasesCollection.findOne({
-      userId: new ObjectId(userId),
-      recipeId: new ObjectId(recipeId),
-    });
+
+    const result = await purchasesCollection.findOne(
+      {
+        userId: new ObjectId(userId),
+        recipeId: new ObjectId(recipeId),
+      },
+      { projection: { _id: 1 } },
+    );
 
     res.json(result !== null);
   } catch (error) {
