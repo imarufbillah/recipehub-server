@@ -151,15 +151,16 @@ const updateRecipe = async (req, res) => {
 const deleteRecipe = async (req, res) => {
   try {
     const recipeId = req.params.recipeId;
-    const cursor = { _id: new ObjectId(recipeId) };
 
-    const result = await recipesCollection.deleteOne(cursor);
+    const result = await recipesCollection.deleteOne({
+      _id: new ObjectId(recipeId),
+    });
 
-    if (result.deletedCount > 0) {
-      res.json({ message: "Recipe deleted successfully!" });
-    } else {
-      res.status(404).json({ message: "Recipe not found!" });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Recipe not found!" });
     }
+
+    res.json({ message: "Recipe deleted successfully!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error deleting recipe!" });
