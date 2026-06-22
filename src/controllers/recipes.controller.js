@@ -270,15 +270,21 @@ const getAllRecipes = async (req, res) => {
 };
 
 // Get all recipe categories
+let categoriesCache = null;
+let categoriesCachedAt = null;
+const CATEGORIES_TTL = 5 * 60 * 1000; // 5 minutes
+
 const getAllRecipeCategories = async (req, res) => {
   try {
+    const now = Date.now();
+
+    if (categoriesCache && now - categoriesCachedAt < CATEGORIES_TTL) {
+      return res.json(categoriesCache);
+    }
+
     const result = await recipesCollection
       .aggregate([
-        {
-          $group: {
-            _id: "$category",
-          },
-        },
+        { $group: { _id: "$category" } },
         {
           $project: {
             _id: 0,
@@ -286,13 +292,12 @@ const getAllRecipeCategories = async (req, res) => {
             label: "$_id",
           },
         },
-        {
-          $sort: {
-            label: 1,
-          },
-        },
+        { $sort: { label: 1 } },
       ])
       .toArray();
+
+    categoriesCache = result;
+    categoriesCachedAt = now;
 
     res.json(result);
   } catch (error) {
