@@ -60,28 +60,41 @@ const likeRecipe = async (req, res) => {
 const unlikeRecipe = async (req, res) => {
   try {
     const { userId, recipeId } = req.body;
+
+    const recipe = await recipesCollection.findOne(
+      { _id: new ObjectId(recipeId) },
+      {
+        projection: {
+          userId: 1,
+        },
+      },
+    );
+
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found!" });
+    }
+
     const result = await likesCollection.deleteOne({
       recipeId: new ObjectId(recipeId),
       userId: new ObjectId(userId),
     });
 
-    if (result.deletedCount > 0) {
-      // Decrement likeCount for the recipe
-      await recipesCollection.updateOne(
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Like not found!" });
+    }
+
+    await Promise.all([
+      recipesCollection.updateOne(
         { _id: new ObjectId(recipeId) },
         { $inc: { likeCount: -1 } },
-      );
-
-      // Decrement totalLikes for the user
-      await usersCollection.updateOne(
-        { _id: new ObjectId(userId) },
+      ),
+      usersCollection.updateOne(
+        { _id: new ObjectId(recipe.userId) },
         { $inc: { totalLikes: -1 } },
-      );
+      ),
+    ]);
 
-      res.json({ message: "Recipe unliked successfully!" });
-    } else {
-      res.status(404).json({ message: "Recipe not found!" });
-    }
+    res.json({ message: "Recipe unliked successfully!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error unliking recipe!" });
