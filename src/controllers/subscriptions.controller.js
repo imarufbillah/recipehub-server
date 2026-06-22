@@ -9,9 +9,32 @@ const usersCollection = database.collection("user");
 const createSubscription = async (req, res) => {
   try {
     const payload = req.body;
+    const userObjectId = new ObjectId(payload.userId);
+
+    const [existingUser, existingStripeId, existingPriceId] = await Promise.all(
+      [
+        subscriptionsCollection.findOne(
+          { userId: userObjectId },
+          { projection: { _id: 1 } },
+        ),
+        subscriptionsCollection.findOne(
+          { stripeSubscriptionId: payload.stripeSubscriptionId },
+          { projection: { _id: 1 } },
+        ),
+        subscriptionsCollection.findOne(
+          { stripePriceId: payload.stripePriceId },
+          { projection: { _id: 1 } },
+        ),
+      ],
+    );
+
+    if (existingUser || existingStripeId || existingPriceId) {
+      return res.status(400).json({ message: "Subscription already exists!" });
+    }
+
     const newSubscription = {
       ...payload,
-      userId: new ObjectId(payload.userId),
+      userId: userObjectId,
       amount: Number(payload.amount),
       currentPeriodStart: new Date(payload.currentPeriodStart),
       currentPeriodEnd: new Date(payload.currentPeriodEnd),
@@ -20,37 +43,18 @@ const createSubscription = async (req, res) => {
       createdAt: new Date(),
     };
 
-    const existingSubscription = await subscriptionsCollection.findOne({
-      userId: new ObjectId(payload.userId),
-    });
-
-    if (existingSubscription) {
-      return res.status(400).json({ message: "Subscription already exists!" });
-    }
-
-    // Check if stripeSubscriptionId and stripePriceId already exist
-    const existingSubscriptionId = await subscriptionsCollection.findOne({
-      stripeSubscriptionId: payload.stripeSubscriptionId,
-    });
-    const existingPriceId = await subscriptionsCollection.findOne({
-      stripePriceId: payload.stripePriceId,
-    });
-
-    if (existingSubscriptionId || existingPriceId) {
-      return res.status(400).json({ message: "Subscription already exists!" });
-    }
-
     const result = await subscriptionsCollection.insertOne(newSubscription);
 
-    if (result.acknowledged) {
-      // change plan in users collection
-      await usersCollection.updateOne(
-        { _id: new ObjectId(payload.userId) },
-        { $set: { plan: payload.plan } },
-      );
+    if (!result.acknowledged) {
+      return res.status(500).json({ message: "Error creating subscription!" });
     }
 
-    res.json({ message: "Subscription created successfully!" });
+    await usersCollection.updateOne(
+      { _id: userObjectId },
+      { $set: { plan: payload.plan } },
+    );
+
+    res.status(201).json({ message: "Subscription created successfully!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error creating subscription!" });
