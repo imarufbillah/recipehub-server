@@ -85,8 +85,52 @@ const getFavoriteStatus = async (req, res) => {
   }
 };
 
+// Get favorites by user ID (includes recipe details)
+const getFavoritesByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const result = await favoritesCollection
+      .aggregate([
+        {
+          $match: {
+            userId: new ObjectId(userId),
+          },
+        },
+        {
+          $lookup: {
+            from: "recipes",
+            localField: "recipeId",
+            foreignField: "_id",
+            as: "recipe",
+          },
+        },
+        {
+          $unwind: "$recipe",
+        },
+        {
+          $project: {
+            _id: 0,
+            addedAt: 1,
+            recipeName: "$recipe.recipeName",
+            category: "$recipe.category",
+            isPremium: "$recipe.isPremium",
+            author: "$recipe.author",
+          },
+        },
+      ])
+      .toArray();
+
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching favorites!" });
+  }
+};
+
 module.exports = {
   addToFavorites,
   removeFromFavorites,
   getFavoriteStatus,
+  getFavoritesByUserId,
 };
