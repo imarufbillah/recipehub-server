@@ -153,8 +153,84 @@ const deleteRecipe = async (req, res) => {
 // Get all recipes
 const getAllRecipes = async (req, res) => {
   try {
-    const result = await recipesCollection.find().toArray();
-    res.json(result);
+    const {
+      q,
+      category,
+      cuisine,
+      difficulty,
+      isPremium,
+      isFeatured,
+      minPrice,
+      maxPrice,
+      maxPrepTime,
+      sort,
+      page,
+      limit,
+    } = req.query;
+
+    const filter = {};
+
+    // Full-text search (recipeName + description)
+    if (q?.trim()) {
+      filter.$or = [
+        { recipeName: { $regex: q.trim(), $options: "i" } },
+        { description: { $regex: q.trim(), $options: "i" } },
+      ];
+    }
+
+    // Categorical filters
+    if (category) filter.category = { $regex: `^${category}$`, $options: "i" };
+    if (cuisine) filter.cuisine = { $regex: `^${cuisine}$`, $options: "i" };
+    if (difficulty)
+      filter.difficulty = { $regex: `^${difficulty}$`, $options: "i" };
+
+    // Boolean filters
+    if (isPremium !== undefined) filter.isPremium = isPremium === "true";
+    if (isFeatured !== undefined) filter.isFeatured = isFeatured === "true";
+
+    // Price range (only meaningful for premium recipes)
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice) filter.price.$gte = parseFloat(minPrice);
+      if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
+    }
+
+    // Prep time ceiling
+    if (maxPrepTime) filter.prepTime = { $lte: parseInt(maxPrepTime, 10) };
+
+    // Sort
+    const sortMap = {
+      newest: { _id: -1 },
+      oldest: { _id: 1 },
+      popular: { likeCount: -1 },
+      price_asc: { price: 1 },
+      price_desc: { price: -1 },
+    };
+    const sortOption = sortMap[sort] ?? { _id: -1 }; // default: newest
+
+    // Pagination
+    const pageNum = Math.max(1, parseInt(page ?? "1", 10));
+    const pageSize = Math.min(50, Math.max(1, parseInt(limit ?? "12", 10)));
+    const skip = (pageNum - 1) * pageSize;
+
+    // Query
+    const [result, total] = await Promise.all([
+      recipesCollection
+        .find(filter)
+        .sort(sortOption)
+        .skip(skip)
+        .limit(pageSize)
+        .toArray(),
+      recipesCollection.countDocuments(filter),
+    ]);
+
+    res.json({
+      recipes: result,
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / pageSize),
+      limit: pageSize,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching recipes!" });
