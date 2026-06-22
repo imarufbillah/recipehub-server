@@ -11,26 +11,43 @@ const usersCollection = database.collection("user");
 const addToFavorites = async (req, res) => {
   try {
     const { userId, recipeId } = req.body;
+
+    const recipe = await recipesCollection.findOne(
+      { _id: new ObjectId(recipeId) },
+      {
+        projection: {
+          userId: 1,
+        },
+      },
+    );
+
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found!" });
+    }
+
     const newFavorite = {
       userId: new ObjectId(userId),
       recipeId: new ObjectId(recipeId),
+      recipePublisher: new ObjectId(recipe.userId),
       addedAt: new Date(),
     };
 
     const result = await favoritesCollection.insertOne(newFavorite);
-    if (result.acknowledged) {
-      // Increment favoriteCount for the recipe
-      await recipesCollection.updateOne(
+
+    if (!result.acknowledged) {
+      return res.status(500).json({ message: "Error adding to favorites!" });
+    }
+
+    await Promise.all([
+      recipesCollection.updateOne(
         { _id: new ObjectId(recipeId) },
         { $inc: { favoriteCount: 1 } },
-      );
-
-      // Increment totalFavorites for the user
-      await usersCollection.updateOne(
-        { _id: new ObjectId(userId) },
+      ),
+      usersCollection.updateOne(
+        { _id: new ObjectId(recipe.userId) },
         { $inc: { totalFavorites: 1 } },
-      );
-    }
+      ),
+    ]);
 
     res.json({ message: "Recipe added to favorites!" });
   } catch (error) {
