@@ -409,6 +409,17 @@ const getRecipeById = async (req, res) => {
   }
 };
 
+// Get total recipes
+const getTotalRecipes = async (req, res) => {
+  try {
+    const total = await recipesCollection.countDocuments();
+    res.json({ totalRecipes: total });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching total recipes!" });
+  }
+};
+
 module.exports = {
   createRecipe,
   getRecipesByUserId,
@@ -418,4 +429,5 @@ module.exports = {
   getAllRecipeCategories,
   getAllRecipeCuisines,
   getRecipeById,
+  getTotalRecipes,
 };
