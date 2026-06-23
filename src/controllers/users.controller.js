@@ -53,4 +53,30 @@ const getTotalPremiumMembers = async (req, res) => {
   }
 };
 
-module.exports = { updateUser, getTotalUsers, getTotalPremiumMembers };
+// Block a user
+const blockUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { isBlocked: true, updatedAt: new Date() } },
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    res.json({ message: "User blocked successfully!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error blocking user!" });
+  }
+};
+
+module.exports = {
+  updateUser,
+  getTotalUsers,
+  getTotalPremiumMembers,
+  blockUser,
+};
