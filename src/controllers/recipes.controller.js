@@ -453,17 +453,28 @@ const getAllRecipesAdmin = async (req, res) => {
 const featureRecipe = async (req, res) => {
   try {
     const { recipeId } = req.params;
+    const recipeObjectId = new ObjectId(recipeId);
 
-    const result = await recipesCollection.updateOne(
-      { _id: new ObjectId(recipeId) },
-      [{ $set: { isFeatured: { $not: "$isFeatured" }, updatedAt: "$$NOW" } }],
+    const recipe = await recipesCollection.findOne(
+      { _id: recipeObjectId },
+      { projection: { status: 1, isFeatured: 1 } },
     );
 
-    if (result.matchedCount === 0) {
+    if (!recipe) {
       return res.status(404).json({ message: "Recipe not found!" });
     }
 
-    const action = result.modifiedCount === 1 ? "featured" : "unfeatured";
+    if (recipe.status === "flagged") {
+      return res
+        .status(400)
+        .json({ message: "Flagged recipes cannot be featured!" });
+    }
+
+    await recipesCollection.updateOne({ _id: recipeObjectId }, [
+      { $set: { isFeatured: { $not: "$isFeatured" }, updatedAt: "$$NOW" } },
+    ]);
+
+    const action = recipe.isFeatured ? "unfeatured" : "featured";
     res.json({ message: `Recipe ${action} successfully!` });
   } catch (error) {
     console.error(error);
