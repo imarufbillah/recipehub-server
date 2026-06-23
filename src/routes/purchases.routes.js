@@ -7,8 +7,10 @@ const {
   getPurchasesByUserId,
 } = require("../controllers/purchases.controller");
 
-router.post("/", makePurchase);
-router.get("/status", getPurchaseStatus);
-router.get("/user/:userId", getPurchasesByUserId);
+const { verifyToken } = require("../middlewares/verifyToken");
+
+router.post("/", verifyToken, makePurchase);
+router.get("/status", verifyToken, getPurchaseStatus);
+router.get("/user/:userId", verifyToken, getPurchasesByUserId);
 
 module.exports = router;

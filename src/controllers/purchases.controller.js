@@ -11,6 +11,10 @@ const makePurchase = async (req, res) => {
     const { userId, recipeId, amount, currency, purchasedAt, ...rest } =
       req.body;
 
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
+
     const userObjectId = new ObjectId(userId);
     const recipeObjectId = new ObjectId(recipeId);
 
@@ -52,6 +56,10 @@ const getPurchaseStatus = async (req, res) => {
   try {
     const { userId, recipeId } = req.query;
 
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
+
     const result = await purchasesCollection.findOne(
       {
         userId: new ObjectId(userId),
@@ -71,6 +79,10 @@ const getPurchaseStatus = async (req, res) => {
 const getPurchasesByUserId = async (req, res) => {
   try {
     const userId = req.params.userId;
+
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
 
     const result = await purchasesCollection
       .aggregate([
