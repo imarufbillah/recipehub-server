@@ -472,6 +472,18 @@ const featureRecipe = async (req, res) => {
         .json({ message: "Flagged recipes cannot be featured!" });
     }
 
+    // Only check limit when featuring, not unfeaturing
+    if (!recipe.isFeatured) {
+      const featuredCount = await recipesCollection.countDocuments({
+        isFeatured: true,
+      });
+      if (featuredCount >= 4) {
+        return res.status(400).json({
+          message: "Featured recipes limit reached! Unfeature one to continue.",
+        });
+      }
+    }
+
     await recipesCollection.updateOne({ _id: recipeObjectId }, [
       { $set: { isFeatured: { $not: "$isFeatured" }, updatedAt: "$$NOW" } },
     ]);
