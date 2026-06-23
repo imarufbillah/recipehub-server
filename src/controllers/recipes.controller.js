@@ -42,6 +42,10 @@ const createRecipe = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields!" });
     }
 
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
+
     const userObjectId = new ObjectId(userId);
 
     const user = await usersCollection.findOne(
@@ -105,6 +109,10 @@ const getRecipesByUserId = async (req, res) => {
   try {
     const userId = req.params.userId;
 
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
+
     const result = await recipesCollection
       .find({ userId: new ObjectId(userId) })
       .sort({ createdAt: -1 })
@@ -122,6 +130,15 @@ const updateRecipe = async (req, res) => {
   try {
     const recipeId = req.params.recipeId;
     const payload = req.body;
+
+    const isOwner = await recipesCollection.findOne({
+      _id: new ObjectId(recipeId),
+      userId: new ObjectId(req.user?.id),
+    });
+
+    if (!isOwner) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
 
     const updatedRecipe = {
       ...payload,
@@ -151,6 +168,15 @@ const updateRecipe = async (req, res) => {
 const deleteRecipe = async (req, res) => {
   try {
     const recipeId = req.params.recipeId;
+
+    const isOwner = await recipesCollection.findOne({
+      _id: new ObjectId(recipeId),
+      userId: new ObjectId(req.user?.id),
+    });
+
+    if (!isOwner) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
 
     const result = await recipesCollection.deleteOne({
       _id: new ObjectId(recipeId),

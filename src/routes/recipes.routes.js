@@ -12,13 +12,15 @@ const {
   getRecipeById,
 } = require("../controllers/recipes.controller");
 
-router.post("/", createRecipe);
+const { verifyToken } = require("../middlewares/verifyToken");
+
+router.post("/", verifyToken, createRecipe);
 router.get("/", getAllRecipes);
 router.get("/categories", getAllRecipeCategories);
 router.get("/cuisines", getAllRecipeCuisines);
-router.get("/user/:userId", getRecipesByUserId);
+router.get("/user/:userId", verifyToken, getRecipesByUserId);
 router.get("/:recipeId", getRecipeById);
-router.patch("/:recipeId", updateRecipe);
-router.delete("/:recipeId", deleteRecipe);
+router.patch("/:recipeId", verifyToken, updateRecipe);
+router.delete("/:recipeId", verifyToken, deleteRecipe);
 
 module.exports = router;
