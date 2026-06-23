@@ -456,6 +456,27 @@ const getAllRecipesAdmin = async (req, res) => {
   }
 };
 
+// Feature a recipe (admin)
+const featureRecipe = async (req, res) => {
+  try {
+    const { recipeId } = req.params;
+
+    const result = await recipesCollection.updateOne(
+      { _id: new ObjectId(recipeId) },
+      { $set: { isFeatured: true, updatedAt: new Date() } },
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "Recipe not found!" });
+    }
+
+    res.json({ message: "Recipe featured successfully!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error featuring recipe!" });
+  }
+};
+
 module.exports = {
   createRecipe,
   getRecipesByUserId,
@@ -467,4 +488,5 @@ module.exports = {
   getRecipeById,
   getTotalRecipes,
   getAllRecipesAdmin,
+  featureRecipe,
 };
