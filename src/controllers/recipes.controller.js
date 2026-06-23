@@ -205,32 +205,35 @@ const getAllRecipes = async (req, res) => {
 
     const filter = {};
 
-    // Full-text search (recipeName + description)
     if (q?.trim()) {
       const searchRegex = new RegExp(q.trim(), "i");
       filter.$or = [{ recipeName: searchRegex }, { description: searchRegex }];
     }
 
-    // Categorical filters
-    if (category) filter.category = new RegExp(`^${category}$`, "i");
+    if (category) {
+      const categories = category
+        .split(",")
+        .map((c) => c.trim())
+        .filter(Boolean);
+      filter.category = {
+        $in: categories.map((c) => new RegExp(`^${c}$`, "i")),
+      };
+    }
+
     if (cuisine) filter.cuisine = new RegExp(`^${cuisine}$`, "i");
     if (difficulty) filter.difficulty = new RegExp(`^${difficulty}$`, "i");
 
-    // Boolean filters
     if (isPremium !== undefined) filter.isPremium = isPremium === "true";
     if (isFeatured !== undefined) filter.isFeatured = isFeatured === "true";
 
-    // Price range
     if (minPrice || maxPrice) {
       filter.price = {};
       if (minPrice) filter.price.$gte = parseFloat(minPrice);
       if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
     }
 
-    // Prep time ceiling
     if (maxPrepTime) filter.prepTime = { $lte: parseInt(maxPrepTime, 10) };
 
-    // Sort
     const sortMap = {
       newest: { _id: -1 },
       oldest: { _id: 1 },
@@ -240,7 +243,6 @@ const getAllRecipes = async (req, res) => {
     };
     const sortOption = sortMap[sort] ?? { _id: -1 };
 
-    // Pagination
     const pageNum = Math.max(1, parseInt(page ?? "1", 10));
     const pageSize = Math.min(50, Math.max(1, parseInt(limit ?? "12", 10)));
     const skip = (pageNum - 1) * pageSize;
