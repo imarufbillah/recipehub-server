@@ -60,7 +60,19 @@ const getReportStatus = async (req, res) => {
   }
 };
 
+// Get total reports
+const getTotalReports = async (req, res) => {
+  try {
+    const total = await reportsCollection.countDocuments();
+    res.json({ totalReports: total });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching total reports!" });
+  }
+};
+
 module.exports = {
   createReport,
   getReportStatus,
+  getTotalReports,
 };
