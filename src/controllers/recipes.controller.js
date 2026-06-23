@@ -429,6 +429,7 @@ const getAllRecipesAdmin = async (req, res) => {
       createdAt: 1,
       likeCount: 1,
       status: 1,
+      isFeatured: 1,
     };
 
     const [recipes, total] = await Promise.all([
