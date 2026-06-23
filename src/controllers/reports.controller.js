@@ -8,7 +8,7 @@ const reportsCollection = database.collection("reports");
 // Create a report
 const createReport = async (req, res) => {
   try {
-    const { userId, recipeId, reason, additionalContext = "" } = req.body;
+    const { userId, recipeId, additionalContext = "", ...rest } = req.body;
 
     if (userId !== req.user?.id) {
       return res.status(401).json({ message: "Unauthorized!" });
@@ -17,8 +17,8 @@ const createReport = async (req, res) => {
     const newReport = {
       userId: new ObjectId(userId),
       recipeId: new ObjectId(recipeId),
-      reason,
       additionalContext,
+      ...rest,
       status: "pending",
       createdAt: new Date(),
     };
