@@ -6,7 +6,9 @@ const {
   getReportStatus,
 } = require("../controllers/reports.controller");
 
-router.post("/", createReport);
-router.get("/status", getReportStatus);
+const { verifyToken } = require("../middlewares/verifyToken");
+
+router.post("/", verifyToken, createReport);
+router.get("/status", verifyToken, getReportStatus);
 
 module.exports = router;

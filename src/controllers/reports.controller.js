@@ -10,6 +10,10 @@ const createReport = async (req, res) => {
   try {
     const { userId, recipeId, reason, additionalContext = "" } = req.body;
 
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
+
     const newReport = {
       userId: new ObjectId(userId),
       recipeId: new ObjectId(recipeId),
@@ -36,6 +40,10 @@ const createReport = async (req, res) => {
 const getReportStatus = async (req, res) => {
   try {
     const { userId, recipeId } = req.query;
+
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
 
     const result = await reportsCollection.findOne(
       {
