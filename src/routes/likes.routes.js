@@ -7,8 +7,10 @@ const {
   getLikeStatus,
 } = require("../controllers/likes.controller");
 
-router.post("/", likeRecipe);
-router.delete("/", unlikeRecipe);
-router.get("/status", getLikeStatus);
+const { verifyToken } = require("../middlewares/verifyToken");
+
+router.post("/", verifyToken, likeRecipe);
+router.delete("/", verifyToken, unlikeRecipe);
+router.get("/status", verifyToken, getLikeStatus);
 
 module.exports = router;

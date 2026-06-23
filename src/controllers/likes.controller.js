@@ -12,6 +12,10 @@ const likeRecipe = async (req, res) => {
   try {
     const { userId, recipeId } = req.body;
 
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
+
     const recipe = await recipesCollection.findOne(
       { _id: new ObjectId(recipeId) },
       {
@@ -61,6 +65,10 @@ const unlikeRecipe = async (req, res) => {
   try {
     const { userId, recipeId } = req.body;
 
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
+
     const recipe = await recipesCollection.findOne(
       { _id: new ObjectId(recipeId) },
       {
@@ -105,6 +113,10 @@ const unlikeRecipe = async (req, res) => {
 const getLikeStatus = async (req, res) => {
   try {
     const { userId, recipeId } = req.query;
+
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
 
     const result = await likesCollection.findOne(
       {
