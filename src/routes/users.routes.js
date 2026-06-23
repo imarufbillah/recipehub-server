@@ -3,6 +3,8 @@ const router = express.Router();
 
 const { updateUser } = require("../controllers/users.controller");
 
-router.patch("/:userId", updateUser);
+const { verifyToken } = require("../middlewares/verifyToken");
+
+router.patch("/:userId", verifyToken, updateUser);
 
 module.exports = router;

@@ -11,6 +11,10 @@ const updateUser = async (req, res) => {
     const userId = req.params.userId;
     const payload = req.body;
 
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
+
     const result = await usersCollection.updateOne(
       { _id: new ObjectId(userId) },
       { $set: { ...payload, updatedAt: new Date() } },
