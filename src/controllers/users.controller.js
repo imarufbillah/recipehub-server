@@ -42,4 +42,15 @@ const getTotalUsers = async (req, res) => {
   }
 };
 
-module.exports = { updateUser, getTotalUsers };
+// Get total premium members
+const getTotalPremiumMembers = async (req, res) => {
+  try {
+    const total = await usersCollection.countDocuments({ plan: "premium" });
+    res.json({ totalPremiumMembers: total });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching total premium members!" });
+  }
+};
+
+module.exports = { updateUser, getTotalUsers, getTotalPremiumMembers };
