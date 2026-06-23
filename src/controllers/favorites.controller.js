@@ -12,6 +12,10 @@ const addToFavorites = async (req, res) => {
   try {
     const { userId, recipeId } = req.body;
 
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
+
     const recipe = await recipesCollection.findOne(
       { _id: new ObjectId(recipeId) },
       {
@@ -61,6 +65,10 @@ const removeFromFavorites = async (req, res) => {
   try {
     const { userId, recipeId } = req.body;
 
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
+
     const recipe = await recipesCollection.findOne(
       { _id: new ObjectId(recipeId) },
       {
@@ -106,6 +114,10 @@ const getFavoriteStatus = async (req, res) => {
   try {
     const { userId, recipeId } = req.query;
 
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
+
     const result = await favoritesCollection.findOne(
       {
         userId: new ObjectId(userId),
@@ -125,6 +137,10 @@ const getFavoriteStatus = async (req, res) => {
 const getFavoritesByUserId = async (req, res) => {
   try {
     const userId = req.params.userId;
+
+    if (userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
 
     const result = await favoritesCollection
       .aggregate([
