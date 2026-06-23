@@ -5,6 +5,8 @@ const {
   createSubscription,
 } = require("../controllers/subscriptions.controller");
 
-router.post("/", createSubscription);
+const { verifyToken } = require("../middlewares/verifyToken");
+
+router.post("/", verifyToken, createSubscription);
 
 module.exports = router;

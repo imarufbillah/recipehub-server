@@ -11,6 +11,10 @@ const createSubscription = async (req, res) => {
     const payload = req.body;
     const userObjectId = new ObjectId(payload.userId);
 
+    if (payload.userId !== req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized!" });
+    }
+
     const [existingUser, existingStripeId, existingPriceId] = await Promise.all(
       [
         subscriptionsCollection.findOne(
