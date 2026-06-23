@@ -167,23 +167,19 @@ const updateRecipe = async (req, res) => {
 // Delete a recipe
 const deleteRecipe = async (req, res) => {
   try {
-    const recipeId = req.params.recipeId;
+    const { recipeId } = req.params;
+    const isAdmin = req.user?.role === "admin";
 
-    const isOwner = await recipesCollection.findOne({
-      _id: new ObjectId(recipeId),
-      userId: new ObjectId(req.user?.id),
-    });
+    const filter = isAdmin
+      ? { _id: new ObjectId(recipeId) }
+      : { _id: new ObjectId(recipeId), userId: new ObjectId(req.user?.id) };
 
-    if (!isOwner) {
-      return res.status(401).json({ message: "Unauthorized!" });
-    }
-
-    const result = await recipesCollection.deleteOne({
-      _id: new ObjectId(recipeId),
-    });
+    const result = await recipesCollection.deleteOne(filter);
 
     if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "Recipe not found!" });
+      return res
+        .status(isAdmin ? 404 : 403)
+        .json({ message: isAdmin ? "Recipe not found!" : "Forbidden!" });
     }
 
     res.json({ message: "Recipe deleted successfully!" });
