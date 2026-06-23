@@ -516,6 +516,34 @@ const getFeaturedRecipes = async (req, res) => {
   }
 };
 
+// Get most liked recipes
+const getMostLikedRecipes = async (req, res) => {
+  try {
+    const recipes = await recipesCollection
+      .find(
+        { status: "active" },
+        {
+          projection: {
+            recipeName: 1,
+            category: 1,
+            prepTime: 1,
+            imageUrl: 1,
+            author: 1,
+            likeCount: 1,
+          },
+        },
+      )
+      .sort({ likeCount: -1 })
+      .limit(8)
+      .toArray();
+
+    res.json(recipes);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching most liked recipes!" });
+  }
+};
+
 module.exports = {
   createRecipe,
   getRecipesByUserId,
@@ -529,4 +557,5 @@ module.exports = {
   getAllRecipesAdmin,
   featureRecipe,
   getFeaturedRecipes,
+  getMostLikedRecipes,
 };
