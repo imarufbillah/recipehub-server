@@ -4,6 +4,7 @@ const { database } = require("../config/db");
 const { ObjectId } = require("mongodb");
 
 const reportsCollection = database.collection("reports");
+const recipesCollection = database.collection("recipes");
 
 // Create a report
 const createReport = async (req, res) => {
@@ -106,9 +107,66 @@ const getAllReports = async (req, res) => {
   }
 };
 
+// Review a report
+const reviewReport = async (req, res) => {
+  try {
+    const { reportId } = req.params;
+    const { action } = req.body; // "resolve" | "dismiss"
+
+    if (!["resolve", "dismiss"].includes(action)) {
+      return res.status(400).json({ message: "Invalid action!" });
+    }
+
+    const report = await reportsCollection.findOne(
+      { _id: new ObjectId(reportId) },
+      { projection: { recipeId: 1, status: 1 } },
+    );
+
+    if (!report) {
+      return res.status(404).json({ message: "Report not found!" });
+    }
+
+    if (report.status !== "pending") {
+      return res.status(400).json({ message: "Report already reviewed!" });
+    }
+
+    const newStatus = action === "resolve" ? "resolved" : "dismissed";
+
+    const operations = [
+      reportsCollection.updateOne(
+        { _id: new ObjectId(reportId) },
+        { $set: { status: newStatus, reviewedAt: new Date() } },
+      ),
+    ];
+
+    if (action === "resolve") {
+      operations.push(
+        recipesCollection.updateOne(
+          { _id: report.recipeId },
+          {
+            $set: {
+              status: "flagged",
+              isFeatured: false,
+              updatedAt: new Date(),
+            },
+          },
+        ),
+      );
+    }
+
+    await Promise.all(operations);
+
+    res.json({ message: `Report ${newStatus} successfully!` });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error reviewing report!" });
+  }
+};
+
 module.exports = {
   createReport,
   getReportStatus,
   getTotalReports,
   getAllReports,
+  reviewReport,
 };

@@ -6,6 +6,7 @@ const {
   getReportStatus,
   getTotalReports,
   getAllReports,
+  reviewReport,
 } = require("../controllers/reports.controller");
 
 const { verifyToken } = require("../middlewares/verifyToken");
@@ -15,5 +16,6 @@ router.post("/", verifyToken, createReport);
 router.get("/", verifyToken, verifyAdmin, getAllReports);
 router.get("/status", verifyToken, getReportStatus);
 router.get("/total", verifyToken, verifyAdmin, getTotalReports);
+router.patch("/review/:reportId", verifyToken, verifyAdmin, reviewReport);
 
 module.exports = router;
