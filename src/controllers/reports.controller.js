@@ -111,7 +111,7 @@ const getAllReports = async (req, res) => {
 const reviewReport = async (req, res) => {
   try {
     const { reportId } = req.params;
-    const { action } = req.body; // "resolve" | "dismiss"
+    const { action } = req.body;
 
     if (!["resolve", "dismiss"].includes(action)) {
       return res.status(400).json({ message: "Invalid action!" });
@@ -140,18 +140,7 @@ const reviewReport = async (req, res) => {
     ];
 
     if (action === "resolve") {
-      operations.push(
-        recipesCollection.updateOne(
-          { _id: report.recipeId },
-          {
-            $set: {
-              status: "flagged",
-              isFeatured: false,
-              updatedAt: new Date(),
-            },
-          },
-        ),
-      );
+      operations.push(recipesCollection.deleteOne({ _id: report.recipeId }));
     }
 
     await Promise.all(operations);
