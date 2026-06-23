@@ -448,24 +448,25 @@ const getAllRecipesAdmin = async (req, res) => {
   }
 };
 
-// Feature a recipe (admin)
+// toggleFeature a recipe (admin)
 const featureRecipe = async (req, res) => {
   try {
     const { recipeId } = req.params;
 
     const result = await recipesCollection.updateOne(
       { _id: new ObjectId(recipeId) },
-      { $set: { isFeatured: true, updatedAt: new Date() } },
+      [{ $set: { isFeatured: { $not: "$isFeatured" }, updatedAt: "$$NOW" } }],
     );
 
     if (result.matchedCount === 0) {
       return res.status(404).json({ message: "Recipe not found!" });
     }
 
-    res.json({ message: "Recipe featured successfully!" });
+    const action = result.modifiedCount === 1 ? "featured" : "unfeatured";
+    res.json({ message: `Recipe ${action} successfully!` });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error featuring recipe!" });
+    res.status(500).json({ message: "Error updating featured status!" });
   }
 };
 
