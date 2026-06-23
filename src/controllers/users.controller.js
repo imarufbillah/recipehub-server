@@ -31,4 +31,15 @@ const updateUser = async (req, res) => {
   }
 };
 
-module.exports = { updateUser };
+// Get total users
+const getTotalUsers = async (req, res) => {
+  try {
+    const total = await usersCollection.countDocuments();
+    res.json({ totalUsers: total });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching total users!" });
+  }
+};
+
+module.exports = { updateUser, getTotalUsers };
