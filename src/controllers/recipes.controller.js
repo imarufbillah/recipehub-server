@@ -128,33 +128,29 @@ const getRecipesByUserId = async (req, res) => {
 // Update a recipe
 const updateRecipe = async (req, res) => {
   try {
-    const recipeId = req.params.recipeId;
-    const payload = req.body;
+    const { recipeId } = req.params;
+    const isAdmin = req.user?.role === "admin";
 
-    const isOwner = await recipesCollection.findOne({
-      _id: new ObjectId(recipeId),
-      userId: new ObjectId(req.user?.id),
-    });
-
-    if (!isOwner) {
-      return res.status(401).json({ message: "Unauthorized!" });
-    }
+    const filter = isAdmin
+      ? { _id: new ObjectId(recipeId) }
+      : { _id: new ObjectId(recipeId), userId: new ObjectId(req.user?.id) };
 
     const updatedRecipe = {
-      ...payload,
-      prepTime: Number(payload.prepTime),
-      servings: Number(payload.servings),
-      price: Number(payload.price),
+      ...req.body,
+      prepTime: Number(req.body.prepTime),
+      servings: Number(req.body.servings),
+      price: Number(req.body.price),
       updatedAt: new Date(),
     };
 
-    const result = await recipesCollection.updateOne(
-      { _id: new ObjectId(recipeId) },
-      { $set: updatedRecipe },
-    );
+    const result = await recipesCollection.updateOne(filter, {
+      $set: updatedRecipe,
+    });
 
     if (result.matchedCount === 0) {
-      return res.status(404).json({ message: "Recipe not found!" });
+      return res
+        .status(isAdmin ? 404 : 403)
+        .json({ message: isAdmin ? "Recipe not found!" : "Forbidden!" });
     }
 
     res.json({ message: "Recipe updated successfully!" });
