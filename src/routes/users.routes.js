@@ -14,12 +14,12 @@ const {
 const { verifyToken } = require("../middlewares/verifyToken");
 const { verifyAdmin } = require("../middlewares/verifyAdmin");
 
-router.patch("/:userId", verifyToken, updateUser);
+router.get("/", verifyToken, verifyAdmin, getAllUsers);
 router.get("/total", verifyToken, verifyAdmin, getTotalUsers);
 router.get("/premium", verifyToken, verifyAdmin, getTotalPremiumMembers);
 router.patch("/block/:userId", verifyToken, verifyAdmin, blockUser);
 router.patch("/unblock/:userId", verifyToken, verifyAdmin, unblockUser);
+router.patch("/:userId", verifyToken, updateUser);
 router.delete("/:userId", verifyToken, verifyAdmin, deleteUser);
-router.get("/", verifyToken, verifyAdmin, getAllUsers);
 
 module.exports = router;

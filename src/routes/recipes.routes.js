@@ -20,10 +20,10 @@ router.post("/", verifyToken, createRecipe);
 router.get("/", getAllRecipes);
 router.get("/categories", getAllRecipeCategories);
 router.get("/cuisines", getAllRecipeCuisines);
+router.get("/total", verifyToken, verifyAdmin, getTotalRecipes);
 router.get("/user/:userId", verifyToken, getRecipesByUserId);
 router.get("/:recipeId", getRecipeById);
 router.patch("/:recipeId", verifyToken, updateRecipe);
 router.delete("/:recipeId", verifyToken, deleteRecipe);
-router.get("/total", verifyToken, verifyAdmin, getTotalRecipes);
 
 module.exports = router;
