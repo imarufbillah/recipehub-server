@@ -484,6 +484,38 @@ const featureRecipe = async (req, res) => {
   }
 };
 
+// Get all featured recipes
+const getFeaturedRecipes = async (req, res) => {
+  try {
+    const recipes = await recipesCollection
+      .find(
+        { isFeatured: true },
+        {
+          projection: {
+            recipeName: 1,
+            category: 1,
+            cuisine: 1,
+            difficulty: 1,
+            prepTime: 1,
+            imageUrl: 1,
+            isPremium: 1,
+            price: 1,
+            author: 1,
+            likeCount: 1,
+            favoriteCount: 1,
+          },
+        },
+      )
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    res.json(recipes);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching featured recipes!" });
+  }
+};
+
 module.exports = {
   createRecipe,
   getRecipesByUserId,
@@ -496,4 +528,5 @@ module.exports = {
   getTotalRecipes,
   getAllRecipesAdmin,
   featureRecipe,
+  getFeaturedRecipes,
 };

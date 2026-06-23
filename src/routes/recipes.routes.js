@@ -13,6 +13,7 @@ const {
   getTotalRecipes,
   getAllRecipesAdmin,
   featureRecipe,
+  getFeaturedRecipes,
 } = require("../controllers/recipes.controller");
 
 const { verifyToken } = require("../middlewares/verifyToken");
@@ -24,6 +25,7 @@ router.get("/categories", getAllRecipeCategories);
 router.get("/cuisines", getAllRecipeCuisines);
 router.get("/total", verifyToken, verifyAdmin, getTotalRecipes);
 router.get("/admin", verifyToken, verifyAdmin, getAllRecipesAdmin);
+router.get("/featured", getFeaturedRecipes);
 router.patch("/feature/:recipeId", verifyToken, verifyAdmin, featureRecipe);
 router.get("/user/:userId", verifyToken, getRecipesByUserId);
 router.get("/:recipeId", getRecipeById);
