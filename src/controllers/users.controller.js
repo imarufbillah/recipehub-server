@@ -130,6 +130,48 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// Get all users
+const getAllUsers = async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page ?? "1", 10));
+    const limit = Math.min(
+      50,
+      Math.max(1, parseInt(req.query.limit ?? "20", 10)),
+    );
+    const skip = (page - 1) * limit;
+
+    const filter = { role: "user" };
+    const projection = {
+      name: 1,
+      email: 1,
+      createdAt: 1,
+      recipes: 1,
+      isBlocked: 1,
+      plan: 1,
+    };
+
+    const [users, total] = await Promise.all([
+      usersCollection
+        .find(filter, { projection })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .toArray(),
+      usersCollection.countDocuments(filter),
+    ]);
+
+    res.json({
+      users,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching users data!" });
+  }
+};
+
 module.exports = {
   updateUser,
   getTotalUsers,
@@ -137,4 +179,5 @@ module.exports = {
   blockUser,
   unblockUser,
   deleteUser,
+  getAllUsers,
 };
