@@ -71,8 +71,44 @@ const getTotalReports = async (req, res) => {
   }
 };
 
+// Get all reports
+const getAllReports = async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page ?? "1", 10));
+    const limit = Math.min(
+      50,
+      Math.max(1, parseInt(req.query.limit ?? "20", 10)),
+    );
+    const skip = (page - 1) * limit;
+
+    const projection = {
+      recipeName: 1,
+      reporterName: 1,
+      reason: 1,
+      createdAt: 1,
+      status: 1,
+    };
+
+    const [reports, total] = await Promise.all([
+      reportsCollection
+        .find({}, { projection })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .toArray(),
+      reportsCollection.countDocuments(),
+    ]);
+
+    res.json({ reports, total, page, totalPages: Math.ceil(total / limit) });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching reports!" });
+  }
+};
+
 module.exports = {
   createReport,
   getReportStatus,
   getTotalReports,
+  getAllReports,
 };
