@@ -420,6 +420,42 @@ const getTotalRecipes = async (req, res) => {
   }
 };
 
+// Get all recipes (admin)
+const getAllRecipesAdmin = async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page ?? "1", 10));
+    const limit = Math.min(
+      50,
+      Math.max(1, parseInt(req.query.limit ?? "20", 10)),
+    );
+    const skip = (page - 1) * limit;
+
+    const projection = {
+      recipeName: 1,
+      author: 1,
+      category: 1,
+      createdAt: 1,
+      likeCount: 1,
+      status: 1,
+    };
+
+    const [recipes, total] = await Promise.all([
+      recipesCollection
+        .find({}, { projection })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .toArray(),
+      recipesCollection.countDocuments(),
+    ]);
+
+    res.json({ recipes, totalPages: Math.ceil(total / limit), page });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching recipes!" });
+  }
+};
+
 module.exports = {
   createRecipe,
   getRecipesByUserId,
@@ -430,4 +466,5 @@ module.exports = {
   getAllRecipeCuisines,
   getRecipeById,
   getTotalRecipes,
+  getAllRecipesAdmin,
 };
