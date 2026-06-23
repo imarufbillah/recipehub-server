@@ -74,9 +74,31 @@ const blockUser = async (req, res) => {
   }
 };
 
+// Unblock a user
+const unblockUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { isBlocked: false, updatedAt: new Date() } },
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    res.json({ message: "User unblocked successfully!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error unblocking user!" });
+  }
+};
+
 module.exports = {
   updateUser,
   getTotalUsers,
   getTotalPremiumMembers,
   blockUser,
+  unblockUser,
 };
