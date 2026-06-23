@@ -7,6 +7,7 @@ const {
   getTotalPremiumMembers,
   blockUser,
   unblockUser,
+  deleteUser,
 } = require("../controllers/users.controller");
 
 const { verifyToken } = require("../middlewares/verifyToken");
@@ -17,5 +18,6 @@ router.get("/total", verifyToken, verifyAdmin, getTotalUsers);
 router.get("/premium", verifyToken, verifyAdmin, getTotalPremiumMembers);
 router.patch("/block/:userId", verifyToken, verifyAdmin, blockUser);
 router.patch("/unblock/:userId", verifyToken, verifyAdmin, unblockUser);
+router.delete("/:userId", verifyToken, verifyAdmin, deleteUser);
 
 module.exports = router;

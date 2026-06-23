@@ -4,6 +4,12 @@ const { database } = require("../config/db");
 const { ObjectId } = require("mongodb");
 
 const usersCollection = database.collection("user");
+const recipesCollection = database.collection("recipes");
+const favoritesCollection = database.collection("favorites");
+const likesCollection = database.collection("likes");
+const subscriptionsCollection = database.collection("subscriptions");
+const reportsCollection = database.collection("reports");
+const purchasesCollection = database.collection("purchases");
 
 // Update a user
 const updateUser = async (req, res) => {
@@ -95,10 +101,40 @@ const unblockUser = async (req, res) => {
   }
 };
 
+// Delete a user
+const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const userObjectId = new ObjectId(userId);
+
+    const result = await usersCollection.deleteOne({ _id: userObjectId });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    // Cleanup orphaned data
+    await Promise.all([
+      recipesCollection.deleteMany({ userId: userObjectId }),
+      favoritesCollection.deleteMany({ userId: userObjectId }),
+      likesCollection.deleteMany({ userId: userObjectId }),
+      purchasesCollection.deleteMany({ userId: userObjectId }),
+      reportsCollection.deleteMany({ userId: userObjectId }),
+      subscriptionsCollection.deleteMany({ userId: userObjectId }),
+    ]);
+
+    res.json({ message: "User deleted successfully!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error deleting user!" });
+  }
+};
+
 module.exports = {
   updateUser,
   getTotalUsers,
   getTotalPremiumMembers,
   blockUser,
   unblockUser,
+  deleteUser,
 };
