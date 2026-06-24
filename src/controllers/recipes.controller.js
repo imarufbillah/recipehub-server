@@ -42,6 +42,12 @@ const createRecipe = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields!" });
     }
 
+    if (isPremium && !price) {
+      return res
+        .status(400)
+        .json({ message: "Price is required for premium recipes!" });
+    }
+
     if (userId !== req.user?.id) {
       return res.status(401).json({ message: "Unauthorized!" });
     }
