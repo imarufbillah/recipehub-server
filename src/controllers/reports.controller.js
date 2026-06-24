@@ -5,6 +5,7 @@ const { ObjectId } = require("mongodb");
 
 const reportsCollection = database.collection("reports");
 const recipesCollection = database.collection("recipes");
+const usersCollection = database.collection("user");
 
 // Create a report
 const createReport = async (req, res) => {
@@ -140,7 +141,21 @@ const reviewReport = async (req, res) => {
     ];
 
     if (action === "resolve") {
+      const recipe = await recipesCollection.findOne(
+        { _id: report.recipeId },
+        { projection: { userId: 1 } },
+      );
+
       operations.push(recipesCollection.deleteOne({ _id: report.recipeId }));
+
+      if (recipe?.userId) {
+        operations.push(
+          usersCollection.updateOne(
+            { _id: recipe.userId },
+            { $inc: { recipes: -1 } },
+          ),
+        );
+      }
     }
 
     await Promise.all(operations);
