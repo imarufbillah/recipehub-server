@@ -167,10 +167,22 @@ const reviewReport = async (req, res) => {
   }
 };
 
+// Get total pending reports
+const getTotalPendingReports = async (req, res) => {
+  try {
+    const total = await reportsCollection.countDocuments({ status: "pending" });
+    res.json({ totalPendingReports: total });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching total pending reports!" });
+  }
+};
+
 module.exports = {
   createReport,
   getReportStatus,
   getTotalReports,
   getAllReports,
   reviewReport,
+  getTotalPendingReports,
 };
