@@ -15,6 +15,7 @@ const {
   featureRecipe,
   getFeaturedRecipes,
   getMostLikedRecipes,
+  checkRecipeOwnership,
 } = require("../controllers/recipes.controller");
 
 const { verifyToken } = require("../middlewares/verifyToken");
@@ -29,6 +30,7 @@ router.get("/admin", verifyToken, verifyAdmin, getAllRecipesAdmin);
 router.get("/featured", getFeaturedRecipes);
 router.get("/most-liked", getMostLikedRecipes);
 router.patch("/feature/:recipeId", verifyToken, verifyAdmin, featureRecipe);
+router.get("/check-ownership/:recipeId", verifyToken, checkRecipeOwnership);
 router.get("/user/:userId", verifyToken, getRecipesByUserId);
 router.get("/:recipeId", getRecipeById);
 router.patch("/:recipeId", verifyToken, updateRecipe);

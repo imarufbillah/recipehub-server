@@ -556,6 +556,32 @@ const getMostLikedRecipes = async (req, res) => {
   }
 };
 
+// Check recipe ownership (admin or owner)
+const checkRecipeOwnership = async (req, res) => {
+  try {
+    const { recipeId } = req.params;
+
+    if (req.user?.role === "admin") {
+      return res.json(true);
+    }
+
+    const recipe = await recipesCollection.findOne(
+      { _id: new ObjectId(recipeId) },
+      { projection: { userId: 1 } },
+    );
+
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found!" });
+    }
+
+    const isOwner = recipe.userId.toString() === req.user?.id;
+    res.json(isOwner);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error checking recipe ownership!" });
+  }
+};
+
 module.exports = {
   createRecipe,
   getRecipesByUserId,
@@ -570,4 +596,5 @@ module.exports = {
   featureRecipe,
   getFeaturedRecipes,
   getMostLikedRecipes,
+  checkRecipeOwnership,
 };
