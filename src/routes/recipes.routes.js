@@ -20,6 +20,7 @@ const {
 
 const { verifyToken } = require("../middlewares/verifyToken");
 const { verifyAdmin } = require("../middlewares/verifyAdmin");
+const { optionalToken } = require("../middlewares/optionalToken");
 
 router.post("/", verifyToken, createRecipe);
 router.get("/", getAllRecipes);
@@ -32,7 +33,7 @@ router.get("/most-liked", getMostLikedRecipes);
 router.patch("/feature/:recipeId", verifyToken, verifyAdmin, featureRecipe);
 router.get("/check-ownership/:recipeId", verifyToken, checkRecipeOwnership);
 router.get("/user/:userId", verifyToken, getRecipesByUserId);
-router.get("/:recipeId", getRecipeById);
+router.get("/:recipeId", optionalToken, getRecipeById);
 router.patch("/:recipeId", verifyToken, updateRecipe);
 router.delete("/:recipeId", verifyToken, deleteRecipe);
 

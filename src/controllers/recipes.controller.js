@@ -373,8 +373,7 @@ const getAllRecipeCuisines = async (req, res) => {
 const getRecipeById = async (req, res) => {
   try {
     const { recipeId } = req.params;
-    // TODO: Add auth middleware to get user ID
-    const userId = "6a33cdbbc8e7e9cc557dcb6f"; // or req.user?.id if using auth middleware
+    const userId = req.user?.id;
 
     const recipeObjectId = new ObjectId(recipeId);
 
@@ -395,7 +394,7 @@ const getRecipeById = async (req, res) => {
       return res.status(404).json({ message: "Recipe not found!" });
     }
 
-    const isOwner = userId && recipe.userId.equals(new ObjectId(userId));
+    const isOwner = userId && recipe.userId.toString() === userId;
 
     if (recipe.isPremium && !isPurchased && !isOwner) {
       const { ingredients, steps, ...publicRecipe } = recipe;
